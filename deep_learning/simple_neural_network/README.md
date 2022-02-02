@@ -8,4 +8,5 @@ Implements a class to abstract a neural network.
 Implements various transformations which can be applied on data.
 ## MNIST_test.ipynb
 Demonstrates the implemented neural network.
-
+## Data
+This folder houses the data.
