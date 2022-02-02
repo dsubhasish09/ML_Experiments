@@ -8,7 +8,7 @@ This file implements a class that abstracts a neural network.
 """
 
 import numpy as np
-from one_hot import one_hot
+import matplotlib.pyplot as plt
 
 class Network(object):
     def __init__(self,layers,loss):
@@ -105,6 +105,11 @@ class Network(object):
         """
         N,D=X.shape
         Losses=[]
+        fig=plt.figure()
+        ax = fig.add_subplot(111)
+        plt.ion()
+        fig.show()
+        fig.canvas.draw()
         for i in range(n_epochs):
             k=0
             condition=True
@@ -121,7 +126,14 @@ class Network(object):
                 self.update(rate)
                 k+=1
             Losses.append(loss/k)
-            print("Epoch "+str(i+1)+"  Average Loss="+str(round(loss/k,4)))
+            print("Epoch "+str(i+1)+"  Average Loss="+str(round(loss/k,4)),end="\r")
+            # if visualize:
+            ax.clear()
+            ax.plot(np.arange(1,len(Losses)+1),Losses)
+            plt.xlabel("Epoch")
+            plt.ylabel("Loss")
+            plt.title("Loss vs Epoch")
+            fig.canvas.draw()
         return Losses
     
     def predict(self,X):
