@@ -72,8 +72,8 @@ class CartPole:
         ax.plot(q[0,0] + self.length * np.sin(q[1,0]),self.length * np.cos(q[1,0]),'go')
        
     def animateHistory(self, history):
-        xlim = [np.min(history[:,1]+self.length* np.sin(history[:,2]))-0.25,
-                np.max(history[:,1]+self.length* np.sin(history[:,2]))+0.25]
+        xlim = [np.min([np.min(history[:,1]+self.length* np.sin(history[:,2])),np.min(history[:,1])])-0.25,
+                np.max([np.max(history[:,1]+self.length* np.sin(history[:,2])),np.max(history[:,1])])+0.25]
         fig = plt.figure()
         ax = fig.add_subplot(111)
         plt.ion()
@@ -102,5 +102,4 @@ if __name__ == "__main__":
     dState = cartpole.rk4Step(state, tau, 0.001)
     history = cartpole.unforcedIntegration(q, dq, 10000, 0.001)
     plt.plot(history[:,0],history[:,1])
-    cartpole.animateHistory(history)
     
