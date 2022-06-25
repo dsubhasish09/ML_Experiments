@@ -57,8 +57,8 @@ class CartPole:
     
     def unforcedIntegration(self,q0, dq0, iters, h):
         state = np.zeros((4,1))
-        state[0:2] = q
-        state[2:4] = dq
+        state[0:2] = q0
+        state[2:4] = dq0
         tau = np.zeros((2,1))
         history = np.zeros((iters+1,5))
         history[0,0] = 0
@@ -68,6 +68,13 @@ class CartPole:
             history[i+1,1:] = state[:,0] 
             history[i+1,0] = history[i,0] + h
         return history
+    
+    def drawCartPole(self, q, ax):
+        ax.plot(self.cart_lim,[0,0],'b')
+        ax.plot(q[0,0],0,'ro')
+        ax.plot([q[0,0]-0.05, q[0,0]-0.05, q[0,0]+0.05, q[0,0]+0.05, q[0,0]-0.05],[0.05,-0.05,-0.05,0.05,0.05])
+        ax.plot([q[0,0], q[0,0] + self.length * np.sin(q[1,0])],[0,self.length * np.cos(q[1,0])])
+        ax.plot(q[0,0] + self.length * np.sin(q[1,0]),self.length * np.cos(q[1,0]),'go')
         
    
 if __name__ == "__main__":
