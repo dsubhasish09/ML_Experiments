@@ -28,6 +28,7 @@ class FullyActuated(CartPoleController):
         q = state[0:2]
         dq = state[2:4]
         ddq = self.Kp * (ref - q) + self.Kd * -dq
+        # tau = ddq
         tau = self.cartpole.getM(q) @ ddq + self.cartpole.getCG(q, dq)
         return tau 
 
