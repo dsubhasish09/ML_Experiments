@@ -70,7 +70,24 @@ class CartPole:
         ax.plot([q[0,0]-0.05, q[0,0]-0.05, q[0,0]+0.05, q[0,0]+0.05, q[0,0]-0.05],[0.05,-0.05,-0.05,0.05,0.05])
         ax.plot([q[0,0], q[0,0] + self.length * np.sin(q[1,0])],[0,self.length * np.cos(q[1,0])])
         ax.plot(q[0,0] + self.length * np.sin(q[1,0]),self.length * np.cos(q[1,0]),'go')
-        
+       
+    def animateHistory(self, history):
+        xlim = [np.min(history[:,1]+self.length* np.sin(history[:,2]))-0.25,
+                np.max(history[:,1]+self.length* np.sin(history[:,2]))+0.25]
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        plt.ion()
+        plt.gca().set_aspect('equal')
+        fig.show()
+        fig.canvas.draw()
+        for step in history:
+            ax.clear()
+            q = step[1:3].reshape((2,1))
+            self.drawCartPole(q,ax)
+            plt.xlim(xlim)
+            plt.ylim([-self.length-0.05,self.length+0.05])
+            plt.title("Time = "+str(round(step[0],2))+" seconds")
+            fig.canvas.draw()
    
 if __name__ == "__main__":
     cartpole = CartPole(np.array([0,1]),1,1,1,9.81)
@@ -85,4 +102,5 @@ if __name__ == "__main__":
     dState = cartpole.rk4Step(state, tau, 0.001)
     history = cartpole.unforcedIntegration(q, dq, 10000, 0.001)
     plt.plot(history[:,0],history[:,1])
+    cartpole.animateHistory(history)
     
