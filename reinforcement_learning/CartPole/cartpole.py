@@ -25,42 +25,13 @@ class CartPole:
         return tau
     
     def getM(self,q):
-        M = np.zeros((2,2))
-        dq = np.zeros((2,1))
-        
-        g = self.g
-        self.g = 0
-        
-        fp = self.fp
-        self.fp = 0
-        
-        fr = self.fr
-        self.fr = 0
-        
-        ddq = np.array([[1, 0]]).T
-        M[:,0] = self.inverseDynamics(q, dq, ddq).squeeze()
-        
-        ddq = np.array([[0, 1]]).T
-        M[:,1] = self.inverseDynamics(q, dq, ddq).squeeze()
-        
-        self.g = g
-        self.fp = fp
-        self.fr = fr
+        M = np.array([[(self.m1+self.m2), (self.m2*self.length*np.cos(q[1,0]))],
+                      [(self.m2*self.length*np.cos(q[1,0])), self.m2*self.length**2]])
         return M
     
     def getCG(self,q,dq):
-        ddq = np.zeros((2,1))
-        
-        fp = self.fp
-        self.fp = 0
-        
-        fr = self.fr
-        self.fr = 0
-        
-        CG = self.inverseDynamics(q, dq, ddq)
-        
-        self.fp = fp
-        self.fr = fr
+        CG = np.array([[(-self.m2*(dq[1,0]**2)*self.length*np.sin(q[1,0]))],
+                       [(-self.m2*self.g*self.length*np.sin(q[1,0]))]])
         return CG
     def getFriction(self, q, dq):
         return np.array([[self.fp * dq[0,0], self.fr * dq[1,0]]]).T 
