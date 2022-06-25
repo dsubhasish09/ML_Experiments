@@ -9,23 +9,33 @@ import numpy as np
 import matplotlib.pyplot as plt
 class CartPole:
     
-    def __init__(self,cart_lim: np.ndarray, length: float, mass_cart: float, mass_rod: float, g: float):
+    def __init__(self,cart_lim: np.ndarray, length: float, mass_cart: float, mass_rod: float, g: float, fp: float=0, fr: float=0):
         self.cart_lim = cart_lim
         self.length = length
         self.m1 = mass_cart
         self.m2 = mass_rod
         self.g = g
+        self.fp = fp
+        self.fr = fr
     
     def inverseDynamics(self, q, dq, ddq):
         tau = np.array([[self.m2 * (ddq[0,0] - (dq[1,0]**2)*self.length*np.sin(q[1,0]) + ddq[1,0]*self.length*np.cos(q[1,0])) + self.m1*ddq[0,0],
                          self.m2 * self.length *(-self.g*np.sin(q[1,0]) + ddq[0,0]*np.cos(q[1,0]) + ddq[1,0]*self.length)]]).T
+        tau += self.getFriction(q, dq)
         return tau
     
     def getM(self,q):
         M = np.zeros((2,2))
         dq = np.zeros((2,1))
+        
         g = self.g
         self.g = 0
+        
+        fp = self.fp
+        self.fp = 0
+        
+        fr = self.fr
+        self.fr = 0
         
         ddq = np.array([[1, 0]]).T
         M[:,0] = self.inverseDynamics(q, dq, ddq).squeeze()
@@ -34,18 +44,32 @@ class CartPole:
         M[:,1] = self.inverseDynamics(q, dq, ddq).squeeze()
         
         self.g = g
+        self.fp = fp
+        self.fr = fr
         return M
     
     def getCG(self,q,dq):
         ddq = np.zeros((2,1))
-        return self.inverseDynamics(q, dq, ddq)
-    
+        
+        fp = self.fp
+        self.fp = 0
+        
+        fr = self.fr
+        self.fr = 0
+        
+        CG = self.inverseDynamics(q, dq, ddq)
+        
+        self.fp = fp
+        self.fr = fr
+        return CG
+    def getFriction(self, q, dq):
+        return np.array([[self.fp * dq[0,0], self.fr * dq[1,0]]]).T 
     def directDynamics(self,state,tau):
         q = state[0:2]
         dq = state[2:4]
         dState = np.zeros((4,1))
         dState[0:2] = dq
-        dState[2:4] = np.linalg.inv(self.getM(q)) @ (tau - self.getCG(q, dq))
+        dState[2:4] = np.linalg.inv(self.getM(q)) @ (tau - self.getFriction(q, dq) - self.getCG(q, dq))
         return dState
     
     def rk4Step(self,state,tau,h):
