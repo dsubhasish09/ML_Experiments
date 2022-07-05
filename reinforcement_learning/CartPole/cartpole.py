@@ -7,6 +7,10 @@ Cart-pole simulation
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+# import time 
+from functools import partial
+
 class CartPole:
     
     def __init__(self,cart_lim: np.ndarray, length: float, mass_cart: float, mass_rod: float, g: float, fp: float=0, fr: float=0):
@@ -64,31 +68,45 @@ class CartPole:
             history[i+1,0] = history[i,0] + h
         return history
     
-    def drawCartPole(self, q, ax):
-        ax.plot(self.cart_lim,[0,0],'b')
-        ax.plot(q[0,0],0,'ro')
-        ax.plot([q[0,0]-0.05, q[0,0]-0.05, q[0,0]+0.05, q[0,0]+0.05, q[0,0]-0.05],[0.05,-0.05,-0.05,0.05,0.05])
-        ax.plot([q[0,0], q[0,0] + self.length * np.sin(q[1,0])],[0,self.length * np.cos(q[1,0])])
-        ax.plot(q[0,0] + self.length * np.sin(q[1,0]),self.length * np.cos(q[1,0]),'go')
-       
-    def animateHistory(self, history):
+    def drawCartPole(self, i, history, ax, xlim):
+        q = history[i,1:3].reshape((2,1))
+        cart_pivot, = ax.plot(q[0,0],0,'ro',animated = True)
+        cart, = ax.plot([q[0,0]-0.05, q[0,0]-0.05, q[0,0]+0.05,
+                         q[0,0]+0.05, q[0,0]-0.05],[0.05,-0.05,-0.05,0.05,0.05],'k',
+                         animated = True)
+        pole, = ax.plot([q[0,0], q[0,0] + self.length * np.sin(q[1,0])],
+                        [0,self.length * np.cos(q[1,0])],'k',animated = True)
+        tip, = ax.plot(q[0,0] + self.length * np.sin(q[1,0]),self.length * np.cos(q[1,0]),'go',animated = True)
+        text = ax.text(np.average(xlim),-self.length,
+                       "Time = {time:.2f} seconds".format(time=round(history[i,0],2)),
+                       horizontalalignment='center',
+                       animated = True)
+        return [cart_pivot, cart, pole, tip, text]
+   
+    def animateHistory(self, history,title = "Cart-Pole Animation",interval=10):
         xlim = [np.min([np.min(history[:,1]+self.length* np.sin(history[:,2])),np.min(history[:,1])])-0.25,
                 np.max([np.max(history[:,1]+self.length* np.sin(history[:,2])),np.max(history[:,1])])+0.25]
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        plt.ion()
+        fig, ax = plt.subplots()
+        cart_track, = ax.plot(self.cart_lim,[0,0],'b')
+        cart_pivot, = ax.plot([],[],'ro',animated = True)
+        cart, = ax.plot([],[],animated = True)
+        pole, = ax.plot([],[],animated = True)
+        tip, = ax.plot([],[],'go',animated = True)
+        text = ax.text(np.average(xlim),self.length/2,"",horizontalalignment='center',animated = True)
+        plt.xlim(xlim)
+        plt.ylim([-self.length-0.05,self.length+0.05])
+        title = plt.title(title)
         plt.gca().set_aspect('equal')
-        fig.show()
-        fig.canvas.draw()
-        for step in history:
-            ax.clear()
-            q = step[1:3].reshape((2,1))
-            self.drawCartPole(q,ax)
-            plt.xlim(xlim)
-            plt.ylim([-self.length-0.05,self.length+0.05])
-            plt.title("Time = "+str(round(step[0],2))+" seconds")
-            fig.canvas.draw()
-   
+        animate = partial(self.drawCartPole,history = history, ax = ax, xlim = xlim)
+        plt.show()
+        plots = []
+        for i in range(len(history)):
+            plots.append(animate(i))
+        anim = animation.ArtistAnimation(fig, plots, interval=interval, blit=True,
+                                        repeat_delay=1000)
+        plt.show()
+        return anim
+
 if __name__ == "__main__":
     cartpole = CartPole(np.array([0,1]),1,1,1,9.81)
     q = np.array([[0,np.pi/2]]).T
@@ -100,6 +118,6 @@ if __name__ == "__main__":
     tau = np.array([[0,0]]).T
     state = np.array([[0,np.pi/2,0,0]]).T
     dState = cartpole.rk4Step(state, tau, 0.001)
-    history = cartpole.unforcedIntegration(q, dq, 10000, 0.001)
+    history = cartpole.unforcedIntegration(q, dq, 10000, 0.01)
     plt.plot(history[:,0],history[:,1])
-    
+    cartpole.animateHistory(history)  
