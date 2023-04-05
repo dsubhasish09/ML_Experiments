@@ -45,7 +45,7 @@ class CartPole_Base(gym.Env):
         self.R = np.array([[cfg.f_penalty, 0],
                            [0, cfg.tau_penalty]])
         
-        self.survival_reward = (self.state_lim.T @ self.Q @ self.state_lim + self.ulim.T @ self.R @ self.ulim)
+        self.survival_reward = cfg.survival_reward
         
         self.state = np.zeros((4,1))
         self.delta_t = cfg.delta_t
@@ -55,7 +55,7 @@ class CartPole_Base(gym.Env):
         self.obs_lim = np.vstack([self.state_lim, self.ulim])
         self.observation_space = spaces.Box(low=-self.obs_lim.squeeze(), high=self.obs_lim.squeeze(), dtype = np.float32)
         self.action_space = spaces.Box(low=-self.u_residual_lim.squeeze(), high=self.u_residual_lim.squeeze(), dtype = np.float32)
-
+   
     def getM(self, state):
         return np.array([[(self.m1 + self.m2), self.m2 * self.l * np.cos(state[1,0])],
                          [ self.m2 * self.l * np.cos(state[1,0]), self.m2 * self.l ** 2]])
@@ -91,6 +91,19 @@ class CartPole_Base(gym.Env):
 
         state = self.state + (1/6) * self.delta_t * (ds1 + 2*ds2 + 2*ds3 + ds4)
 
+        # angle wrap over-
+        if state[1,0] > np.pi:
+            state[1,0] = -2*np.pi + state[1,0]
+        if state[1,0] < -np.pi:
+            state[1,0] = 2*np.pi + state[1,0]
+
+        #velocity limit
+        if abs(state[2,0]) > self.state_lim[2,0]:
+            state[2,0] = np.sign(state[2,0]) * self.state_lim[2,0]
+
+        if abs(state[3,0]) > self.state_lim[3,0]:
+            state[3,0] = np.sign(state[3,0]) * self.state_lim[3,0]
+
         self.state = state
 
         reward = self.reward_fcn(state, self.u)
@@ -102,7 +115,7 @@ class CartPole_Base(gym.Env):
         return np.vstack([self.state,self.u]).squeeze(), reward.squeeze(), done, info        
     
     def reward_fcn(self,state, u):
-        return  (self.survival_reward - (state.T @ self.Q @ state + u.T @ self.R @ u)) / self.survival_reward
+        return  (self.survival_reward - (state.T @ self.Q @ state + u.T @ self.R @ u)) 
     
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -114,10 +127,14 @@ class CartPole_Base(gym.Env):
             return True
         else: return False
     
-    def reset(self):   
+    def reset(self, init_state = None):   
         self.state = np.zeros((4,1))
-        # self.state[1,0] = np.random.uniform(low=-np.pi, high=np.pi)
-        self.state[1,0] = np.pi
+        try:
+            if init_state==None:
+                self.state[0,0] = np.random.uniform(low = -self.state_lim[0,0], high = self.state_lim[0,0])
+                self.state[1,0] = np.random.uniform(low=-np.pi, high=np.pi)
+        except: 
+            self.state = init_state
         self.u = np.zeros((2,1))
         self.t = 0
         # self.state[3,0] = 0.5
