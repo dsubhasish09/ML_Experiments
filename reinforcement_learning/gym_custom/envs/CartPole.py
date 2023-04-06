@@ -166,3 +166,20 @@ class CartPole_Base(gym.Env):
             plt.ylim([-self.l-0.05,self.l+0.05])
             fig.show()
             fig.canvas.draw()
+
+class CartPole_UnderAct(CartPole_Base):
+    def __init__(self, cfg: DictConfig, seed:int = 0):
+        super(CartPole_UnderAct, self).__init__(cfg, seed)
+        self.obs_lim = self.obs_lim[0:5,:]
+        self.observation_space = spaces.Box(low=-self.obs_lim.squeeze(), high=self.obs_lim.squeeze(), dtype = np.float32)
+        self.action_space = spaces.Box(low=-self.u_residual_lim[0,0], high=self.u_residual_lim[0,0], shape=(1,), dtype = np.float32)
+
+    def step(self, u):
+        u = np.array([[ u[0],0]]).T
+        state, reward, done, info = super(CartPole_UnderAct, self).step(u)
+
+        return state[0:5], reward, done, info
+    
+    def reset(self, init_state = None):
+        state = super(CartPole_UnderAct, self).reset(init_state)
+        return state[0:5]

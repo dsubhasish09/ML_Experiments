@@ -1,5 +1,5 @@
 defaults:
-  - sim_config: cartpole-v0
+  - sim_config: cartpole-v1
   - train_config: SAC
   - _self_
 
@@ -11,7 +11,7 @@ train_config:
   seed: 0
   replay_size: 100000
   updates_per_step: 1
-  start_steps: 1000
+  start_steps: 0
 
 run_config:
-  run_identifier: Full_Act_Cartpole_Agent
+  run_identifier: Under_Act_Cartpole_Agent2
