@@ -29,7 +29,7 @@ def main(cfg: DictConfig) -> None:
     env_eval = gym.make('gym_custom:' + cfg.sim_config.name, cfg = cfg.sim_config)
     env_eval.seed(cfg.train_config.seed)
     agent = SAC_REG(env_train.observation_space.shape[0], env_train.action_space, sac_cfg)
-    agent.load_checkpoint("logs/Under_Act_Cartpole_Agent.pt", evaluate=False)
+    # agent.load_checkpoint("logs/Under_Act_Cartpole_Agent.pt", evaluate=False)
     memory = ReplayBuffer(
         cfg.train_config.replay_size,
         env_train.observation_space.shape,
