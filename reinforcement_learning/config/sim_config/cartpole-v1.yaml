@@ -20,7 +20,7 @@ f_penalty: 1
 tau_penalty: 1
 delta_t: 0.01
 t_max: 30
-f_residual_scale: 0.1
-tau_residual_scale: 0.1
+f_residual_scale: 1
+tau_residual_scale: 1
 f_residual_lim: 1
 tau_residual_lim: 1
