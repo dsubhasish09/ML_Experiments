@@ -1,2 +1,2 @@
 # reinforcement_learning
-Implements custom gym environments for experimenting with RL techniques.
+Implements custom gym environments for experimenting with RL techniques. Currently only a custom cartpole environment is implemented. Detailed documentation to be released soon.
